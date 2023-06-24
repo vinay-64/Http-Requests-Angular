@@ -1,55 +1,69 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Component, VERSION } from '@angular/core';
-import { NgForm } from '@angular/forms';
 import { map } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+
 import { Post } from './post.model';
+import { PostsService } from './posts.service';
 
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent {
-  isLoading: boolean = false;
-
+export class AppComponent implements OnInit, OnDestroy {
   loadedPosts: Post[] = [];
+  isFetching = false;
+  error = null;
+  private errorSub: Subscription;
 
-  url = 'https://angular-complete-guide-7d579-default-rtdb.firebaseio.com/';
+  constructor(private http: HttpClient, private postsService: PostsService) {}
 
-  constructor(private http: HttpClient) {
-    this.fetchPosts();
+  ngOnInit() {
+    this.errorSub = this.postsService.error.subscribe((errorMessage) => {
+      this.error = errorMessage;
+    });
+
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      (posts) => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+      (error) => {
+        this.error = error.message;
+      }
+    );
   }
 
-  ngOnInit(): void {}
-
-  fetchPosts() {
-    this.isLoading = true;
-    this.http
-      .get<{ [key: string]: Post }>(this.url + 'posts.json')
-      .pipe(
-        map((response) => {
-          const postsArray: Post[] = [];
-          for (let key in response) {
-            if (response.hasOwnProperty(key)) {
-              postsArray.push({ ...response[key], id: key });
-            }
-          }
-          return postsArray;
-        })
-      )
-      .subscribe((response) => {
-        this.isLoading = false;
-        console.log(response);
-        this.loadedPosts = response;
-      });
+  onCreatePost(postData: Post) {
+    // Send Http request
+    this.postsService.createAndStorePost(postData.title, postData.content);
   }
 
-  onSubmit(form) {
-    console.log(form);
-    this.http
-      .post<{ name: string }>(this.url + '/posts.json', form)
-      .subscribe((response) => {
-        console.log(response);
-      });
+  onFetchPosts() {
+    // Send Http request
+    this.isFetching = true;
+    this.postsService.fetchPosts().subscribe(
+      (posts) => {
+        this.isFetching = false;
+        this.loadedPosts = posts;
+      },
+      (error) => {
+        this.error = error.message;
+        console.log(error);
+      }
+    );
+  }
+
+  onClearPosts() {
+    // Send Http request
+    this.postsService.deletePosts().subscribe(() => {
+      this.loadedPosts = [];
+    });
+  }
+
+  ngOnDestroy() {
+    this.errorSub.unsubscribe();
   }
 }
