@@ -73,6 +73,7 @@ export class PostsService {
         'https://angular-complete-guide-7d579-default-rtdb.firebaseio.com/posts.json',
         {
           observe: 'events',
+          responseType: 'text',
         }
       )
       .pipe(
