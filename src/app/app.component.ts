@@ -10,20 +10,20 @@ import { Post } from './post.model';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  name = 'Angular ' + VERSION.major;
-  mySet = new Set<number>();
+  isLoading: boolean = false;
 
   loadedPosts: Post[] = [];
 
   url = 'https://angular-complete-guide-7d579-default-rtdb.firebaseio.com/';
 
   constructor(private http: HttpClient) {
-    this.fetchData();
+    this.fetchPosts();
   }
 
   ngOnInit(): void {}
 
-  fetchData() {
+  fetchPosts() {
+    this.isLoading = true;
     this.http
       .get<{ [key: string]: Post }>(this.url + 'posts.json')
       .pipe(
@@ -38,6 +38,7 @@ export class AppComponent {
         })
       )
       .subscribe((response) => {
+        this.isLoading = false;
         console.log(response);
         this.loadedPosts = response;
       });
