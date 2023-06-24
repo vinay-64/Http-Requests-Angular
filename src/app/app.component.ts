@@ -24,16 +24,11 @@ export class AppComponent implements OnInit, OnDestroy {
       this.error = errorMessage;
     });
 
-    this.isFetching = true;
-    this.postsService.fetchPosts().subscribe(
-      (posts) => {
-        this.isFetching = false;
-        this.loadedPosts = posts;
-      },
-      (error) => {
-        this.error = error.message;
-      }
-    );
+    this.postsService.onCreateSubject.subscribe(() => {
+      this.onFetchPosts();
+    });
+
+    this.onFetchPosts();
   }
 
   onCreatePost(postData: Post) {
