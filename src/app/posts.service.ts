@@ -52,6 +52,7 @@ export class PostsService {
       )
       .pipe(
         map((responseData) => {
+          console.log('ResponseData : ', responseData);
           const postsArray: Post[] = [];
           for (const key in responseData) {
             if (responseData.hasOwnProperty(key)) {
